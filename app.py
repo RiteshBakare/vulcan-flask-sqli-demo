@@ -27,8 +27,8 @@ def create_app(database: Path | None = None) -> Flask:
     @app.get("/search")
     def search() -> Response:
         term = request.args.get("q", "")
-        sql = f"SELECT id, username FROM users WHERE username LIKE '%{term}%' ORDER BY id"
-        rows = get_db().execute(sql).fetchall()
+        sql = "SELECT id, username FROM users WHERE username LIKE ? ORDER BY id"
+        rows = get_db().execute(sql, (f"%{term}%",)).fetchall()
         return jsonify([dict(row) for row in rows])
 
     @app.get("/users/lookup")
