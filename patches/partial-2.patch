@@ -1,0 +1,11 @@
+--- a/app.py
++++ b/app.py
+@@ -45,6 +45,8 @@ def create_app(database: Path | None = None) -> Flask:
+     @app.get("/orders")
+     def list_orders() -> Response:
+         status = request.args.get("status", "open")
++        if "union" in status.lower():
++            return jsonify([])
+         sql = f"SELECT id, item FROM orders WHERE status = '{status}' ORDER BY id"
+         rows = get_db().execute(sql).fetchall()
+         return jsonify([dict(row) for row in rows])

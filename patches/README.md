@@ -1,12 +1,13 @@
-Test fixtures for Vulcan's own patch verifier (`vulcan verify-patch`). Not real fixes.
+Test fixtures for Vulcan's category-level fix (T-4.8). Not real fixes.
 
-Each patch targets the deliberately vulnerable practice app and exercises one gate outcome:
+The integration tests feed these patches to Vulcan through a scripted fake model, in BR-9 order.
+Each patch is relative to the state after the accepted patches before it, as a real category run
+produces them:
 
-| Patch | Expected result |
-|---|---|
-| `good.patch` | Parameterised query, behaviour preserved. All gates PASS, including the HTTP behaviour snapshots (all 8 `snapshot_requests` of `run-profile.json` identical); blocks every bypass variant. With both recordings it reaches verification level L3 (L2 with `--no-record`). |
-| `partial.patch` | Blocks only the UNION style; boolean injection still works. Exploit gate FAILS. |
-| `variant-gap.patch` | Blocks only the exact original check forms; every bypass variant (case/comment/condition/canary) still succeeds. Exploit gate FAILS, naming a variant. |
-| `breaking.patch` | Blocks injection but changes search to exact match. Tests gate FAILS (the behaviour gate fails too: the search snapshots differ). |
-| `edits-test.patch` | Edits a test file. Policy gate FAILS before any sandbox runs. |
-| `gate-blind.patch` | Parameterises the query with `instr(username, ?) > 0`. Blocks the exploit and every variant, and all 13 tests pass, but search silently stops being case-insensitive (`q=ALI` found alice before, nothing after; no test checks it). Since T-2.5 the HTTP behaviour snapshots catch it: the behaviour gate FAILS and names `search-upper-case` (body: array of 1 before, 0 after). It used to be the seed for the Reviewer (T-5.2) while behaviour compared test results only; in a real `fix` run the Reviewer no longer sees it, because the gates fail first. |
+| Patch | Applies to | Expected result |
+|---|---|---|
+| `good-1.patch` | original `app.py` | Fixes 101-1 (`/search`) with a parameterised query. Adds one line, so every later line in `app.py` moves down by one. |
+| `good-2.patch` | `app.py` after `good-1.patch` | Fixes 101-2 (`/orders`) with a parameterised query. Its hunk starts one line lower than in the original file. |
+| `partial-2.patch` | `app.py` after `good-1.patch` | Blocks only the UNION style for 101-2; boolean injection still works. Exploit gate FAILS. |
+| `good-3.patch` | original `catalog.py` | Fixes 101-3 (`/products`) with a parameterised query. |
+| `both-1-2.patch` | original `app.py` | Fixes 101-1 AND 101-2 in one patch (a real model reply for 101-1). Changes 101-2's lines, so the scope rule rejects it for 101-1. |

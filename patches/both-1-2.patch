@@ -1,0 +1,23 @@
+--- a/app.py
++++ b/app.py
+@@ -28,7 +28,7 @@
+     def search() -> Response:
+         term = request.args.get("q", "")
+-        sql = f"SELECT id, username FROM users WHERE username LIKE '%{term}%' ORDER BY id"
+-        rows = get_db().execute(sql).fetchall()
++        sql = "SELECT id, username FROM users WHERE username LIKE ? ORDER BY id"
++        rows = get_db().execute(sql, (f"%{term}%",)).fetchall()
+         return jsonify([dict(row) for row in rows])
+ 
+     @app.get("/users/lookup")
+@@ -44,8 +44,8 @@
+     @app.get("/orders")
+     def list_orders() -> Response:
+         status = request.args.get("status", "open")
+-        sql = f"SELECT id, item FROM orders WHERE status = '{status}' ORDER BY id"
+-        rows = get_db().execute(sql).fetchall()
++        sql = "SELECT id, item FROM orders WHERE status = ? ORDER BY id"
++        rows = get_db().execute(sql, (status,)).fetchall()
+         return jsonify([dict(row) for row in rows])
+ 
+     return app
